@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АРХІВ СТРОНГХОЛДА</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@300;400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c0f; --surface:#10141a; --surface2:#161c25; --border:#1e2a38;
+    --accent:#c8922a; --red:#b83232; --green:#2a8a4a;
+    --text:#c4cdd8; --text-dim:#5a6a7a; --text-bright:#e8eef5;
+    --mono:'Share Tech Mono',monospace; --head:'Oswald',sans-serif; --body:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;font-size:14px;}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:9999;}
+
+  /* HEADER */
+  #header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-icon{width:32px;height:32px;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;color:var(--accent);position:relative;}
+  .logo-icon::before{content:'';position:absolute;inset:3px;border:1px solid var(--accent);opacity:.4;}
+  .logo-text{font-family:var(--head);font-size:18px;font-weight:600;letter-spacing:3px;color:var(--text-bright);}
+  .logo-sub{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-top:2px;}
+
+  /* LAYOUT */
+  #app{display:flex;min-height:calc(100vh - 56px);}
+
+  /* SIDEBAR */
+  #sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;display:flex;flex-direction:column;}
+  .sidebar-section{padding:0 16px;margin-bottom:20px;}
+  .sidebar-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;padding:0 4px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;color:var(--text-dim);font-size:13px;border:1px solid transparent;margin-bottom:2px;transition:all .15s;user-select:none;}
+  .nav-item:hover{color:var(--text);background:var(--surface2);}
+  .nav-item.active{color:var(--accent);border-color:var(--border);background:var(--surface2);}
+  .nav-icon{font-size:14px;width:18px;text-align:center;}
+  .nav-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  .clevel-btn{display:flex;align-items:center;gap:8px;padding:6px 12px;margin-bottom:2px;cursor:pointer;border:1px solid transparent;font-family:var(--mono);font-size:11px;color:var(--text-dim);transition:all .15s;user-select:none;}
+  .clevel-btn:hover{color:var(--text);}
+  .clevel-btn.active{border-color:var(--border);color:var(--text-bright);}
+  .clevel-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot-1{background:#4a9a6a;} .dot-2{background:#4a7aaa;} .dot-3{background:#c8922a;} .dot-4{background:#cc6633;} .dot-5{background:#b83232;}
+
+  .user-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);margin-top:auto;}
+  .user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1px solid var(--border);}
+  .user-name-small{font-family:var(--mono);font-size:10px;color:var(--text-dim);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+  /* MAIN */
+  #main{flex:1;padding:28px 32px;max-width:960px;}
+  .page{display:none;} .page.active{display:block;}
+
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+  .page-title{font-family:var(--head);font-size:24px;font-weight:600;letter-spacing:2px;color:var(--text-bright);}
+  .page-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:4px;letter-spacing:1px;}
+
+  /* BUTTONS */
+  .btn{font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:7px 16px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:all .15s;text-transform:uppercase;}
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+  .btn-accent{border-color:var(--accent);color:var(--accent);}
+  .btn-accent:hover{background:var(--accent);color:var(--bg);}
+  .btn-danger{border-color:var(--red);color:var(--red);}
+  .btn-danger:hover{background:var(--red);color:#fff;}
+  .btn-full{width:100%;text-align:center;padding:10px;margin-top:4px;}
+
+  /* DOCS */
+  .docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+  .doc-card{background:var(--surface);border:1px solid var(--border);padding:16px;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;}
+  .doc-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--clvl-color,var(--border));}
+  .doc-card:hover{border-color:var(--accent);}
+  .doc-card.locked{opacity:.5;cursor:default;}
+  .doc-card.locked:hover{border-color:var(--border);}
+  .locked-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,12,15,.7);font-family:var(--mono);font-size:11px;color:var(--red);letter-spacing:2px;gap:6px;}
+  .doc-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .doc-clvl{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:2px 6px;border:1px solid;}
+  .doc-title{font-family:var(--head);font-size:15px;font-weight:400;letter-spacing:1px;color:var(--text-bright);margin-bottom:6px;line-height:1.3;}
+  .doc-cat{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:10px;}
+  .doc-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  /* CATS */
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+  .cat-card{background:var(--surface);border:1px solid var(--border);padding:14px 16px;cursor:pointer;transition:border-color .15s;}
+  .cat-card:hover{border-color:var(--accent);}
+  .cat-card.selected{border-color:var(--accent);background:var(--surface2);}
+  .cat-name{font-family:var(--head);font-size:14px;letter-spacing:1px;color:var(--text-bright);margin-bottom:4px;}
+  .cat-info{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+
+  /* CLEARANCE COLORS */
+  .clvl-1{color:#4a9a6a;border-color:#4a9a6a;} .clvl-2{color:#4a7aaa;border-color:#4a7aaa;}
+  .clvl-3{color:#c8922a;border-color:#c8922a;} .clvl-4{color:#cc6633;border-color:#cc6633;}
+  .clvl-5{color:#b83232;border-color:#b83232;}
+
+  /* MODALS */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);padding:28px;width:420px;max-width:95vw;position:relative;max-height:90vh;overflow-y:auto;}
+  .modal-title{font-family:var(--head);font-size:18px;letter-spacing:2px;color:var(--text-bright);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+  .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:var(--mono);line-height:1;}
+  .modal-close:hover{color:var(--red);}
+
+  /* FORM */
+  .form-group{margin-bottom:16px;}
+  .form-label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;}
+  .form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:var(--body);font-size:13px;outline:none;transition:border-color .15s;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);}
+  .form-select option{background:var(--surface);}
+  .form-textarea{resize:vertical;min-height:80px;}
+  .form-file-area{border:1px dashed var(--border);padding:24px;text-align:center;cursor:pointer;transition:border-color .15s;font-family:var(--mono);font-size:11px;color:var(--text-dim);display:block;}
+  .form-file-area:hover{border-color:var(--accent);color:var(--accent);}
+  .form-error{font-family:var(--mono);font-size:11px;color:var(--red);margin-top:8px;}
+  .form-success{font-family:var(--mono);font-size:11px;color:var(--green);margin-top:8px;}
+
+  /* PROGRESS */
+  .progress-bar{height:3px;background:var(--border);margin-top:8px;display:none;}
+  .progress-fill{height:100%;background:var(--accent);transition:width .3s;width:0%;}
+
+  /* SEARCH */
+  .search-bar{display:flex;gap:8px;margin-bottom:20px;}
+  .search-bar .form-input{flex:1;}
+
+  /* EMPTY */
+  .empty-state{text-align:center;padding:60px 20px;font-family:var(--mono);font-size:12px;color:var(--text-dim);letter-spacing:1px;}
+  .empty-icon{font-size:40px;margin-bottom:16px;opacity:.4;}
+
+  /* ADMIN */
+  .admin-section{background:var(--surface);border:1px solid var(--border);padding:20px;margin-bottom:16px;}
+  .admin-section-title{font-family:var(--head);font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:14px;}
+  .key-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);font-family:var(--mono);font-size:11px;margin-bottom:4px;}
+  .key-val{flex:1;color:var(--accent);}
+  .key-used{color:var(--text-dim);font-size:10px;}
+
+  /* PDF */
+  #pdf-viewer{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;}
+  #pdf-viewer.open{display:flex;}
+  .pdf-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;}
+  .pdf-title{font-family:var(--head);font-size:16px;letter-spacing:1px;color:var(--text-bright);flex:1;}
+  #pdf-frame{flex:1;border:none;background:#1a1a1a;}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 20px;font-family:var(--mono);font-size:12px;color:var(--text);z-index:9998;display:none;letter-spacing:1px;max-width:320px;}
+
+  @media(max-width:700px){#sidebar{display:none;}#main{padding:16px;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo">
+    <div class="logo-icon">SH</div>
+    <div>
+      <div class="logo-text">АРХІВ СТРОНГХОЛДА</div>
+      <div class="logo-sub">STRONGHOLD ARCHIVE SYSTEM v1.0</div>
+    </div>
+  </div>
+  <div id="header-right" style="display:flex;align-items:center;gap:12px;"></div>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Навігація</div>
+      <div class="nav-item active" data-page="home" onclick="navigateTo('home')">
+        <span class="nav-icon">⬡</span> Головна
+      </div>
+      <div class="nav-item" data-page="docs" onclick="navigateTo('docs')">
+        <span class="nav-icon">📄</span> Документи
+        <span class="nav-count" id="nav-count-docs">0</span>
+      </div>
+      <div class="nav-item" data-page="cats" onclick="navigateTo('cats')">
+        <span class="nav-icon">📁</span> Категорії
+        <span class="nav-count" id="nav-count-cats">0</span>
+      </div>
+      <div class="nav-item" data-page="activate" onclick="navigateTo('activate')">
+        <span class="nav-icon">🔑</span> Ключ доступу
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Фільтр рівня</div>
+      <div class="clevel-btn" data-level="1" onclick="filterLevel(1)">
+        <span class="clevel-dot dot-1"></span> РІВЕНЬ I
+      </div>
+      <div class="clevel-btn" data-level="2" onclick="filterLevel(2)">
+        <span class="clevel-dot dot-2"></span> РІВЕНЬ II
+      </div>
+      <div class="clevel-btn" data-level="3" onclick="filterLevel(3)">
+        <span class="clevel-dot dot-3"></span> РІВЕНЬ III
+      </div>
+      <div class="clevel-btn" data-level="4" onclick="filterLevel(4)">
+        <span class="clevel-dot dot-4"></span> РІВЕНЬ IV
+      </div>
+      <div class="clevel-btn" data-level="5" onclick="filterLevel(5)">
+        <span class="clevel-dot dot-5"></span> РІВЕНЬ V
+      </div>
+    </div>
+
+    <div id="nav-admin-wrap" style="display:none;">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Юстикар Стронгхолда</div>
+        <div class="nav-item" data-page="admin" onclick="navigateTo('admin')">
+          <span class="nav-icon">⚙</span> Панель Юстикара
+        </div>
+      </div>
+    </div>
+
+    <div id="sidebar-user"></div>
+  </div>
+
+  <div id="main">
+    <!-- HOME -->
+    <div id="page-home" class="page active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ОГЛЯД</div>
+          <div class="page-meta" id="sys-time"></div>
+        </div>
+      </div>
+      <div id="home-stats"></div>
+    </div>
+
+    <!-- DOCS -->
+    <div id="page-docs" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ДОКУМЕНТИ</div>
+          <div class="page-meta">КЛАСИФІКОВАНО · СХОВИЩЕ МАТЕРІАЛІВ</div>
+        </div>
+        <button class="btn btn-accent" onclick="openUploadModal()">+ ЗАВАНТАЖИТИ</button>
+      </div>
+      <div class="search-bar">
+        <input class="form-input" id="search-input" placeholder="ПОШУК ДОКУМЕНТІВ..." oninput="onSearch(event)">
+        <button class="btn" id="btn-reset-cat" style="display:none" onclick="resetCat()">СКИНУТИ КАТ.</button>
+      </div>
+      <div class="docs-grid" id="docs-grid"></div>
+    </div>
+
+    <!-- CATS -->
+    <div id="page-cats" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">КАТЕГОРІЇ</div>
+          <div class="page-meta">АРХІВНІ РОЗДІЛИ</div>
+        </div>
+        <button class="btn btn-accent" onclick="openCatModal()">+ КАТЕГОРІЯ</button>
+      </div>
+      <div class="cat-grid" id="cats-grid"></div>
+    </div>
+
+    <!-- ACTIVATE -->
+    <div id="page-activate" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">КЛЮЧ ДОСТУПУ</div>
+          <div class="page-meta">АКТИВАЦІЯ ДОПУСКУ</div>
+        </div>
+      </div>
+      <div style="max-width:400px">
+        <div style="background:var(--surface);border:1px solid var(--border);padding:24px">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:1.8;margin-bottom:20px">
+            Введіть ключ доступу виданий адміністратором Стронгхолда.<br>
+            Ключ діє одноразово і прив'язується до вашого акаунту.
+          </div>
+          <div id="activate-current" style="display:none;font-family:var(--mono);font-size:11px;padding:10px;border:1px solid var(--green);color:var(--green);margin-bottom:16px;"></div>
+          <div class="form-group">
+            <label class="form-label">КОД ДОСТУПУ</label>
+            <input class="form-input" id="key-input" placeholder="SH-XXXXXX-N" style="font-family:var(--mono);letter-spacing:2px">
+          </div>
+          <div class="form-error" id="key-error"></div>
+          <div class="form-success" id="key-success"></div>
+          <button class="btn btn-accent btn-full" onclick="activateKey()" style="margin-top:12px">АКТИВУВАТИ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="page-admin" class="page">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ПАНЕЛЬ ЮСТИКАРА</div>
+          <div class="page-meta">ЮСТИКАР СТРОНГХОЛДА · УПРАВЛІННЯ СИСТЕМОЮ</div>
+        </div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">ГЕНЕРАЦІЯ КЛЮЧІВ ДОСТУПУ</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <select class="form-select" id="key-level-select" style="width:180px">
+            <option value="1">Рівень I</option>
+            <option value="2">Рівень II</option>
+            <option value="3">Рівень III</option>
+            <option value="4">Рівень IV</option>
+            <option value="5">Рівень V</option>
+          </select>
+          <button class="btn btn-accent" onclick="generateKey()">ГЕНЕРУВАТИ КЛЮЧ</button>
+        </div>
+        <div id="key-list"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">СПИСОК КОРИСТУВАЧІВ</div>
+        <div id="users-list" style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">Завантаження...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF VIEWER -->
+<div id="pdf-viewer">
+  <div class="pdf-header">
+    <span class="pdf-title" id="pdf-title"></span>
+    <div style="display:flex;align-items:center;gap:10px;margin-left:auto">
+      <button class="btn" id="pdf-prev" onclick="pdfPrevPage()">◀</button>
+      <span id="pdf-page-info" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);white-space:nowrap">0 / 0</span>
+      <button class="btn" id="pdf-next" onclick="pdfNextPage()">▶</button>
+      <button class="btn" onclick="closePdf()">✕ ЗАКРИТИ</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:20px;background:#1a1a1a">
+    <canvas id="pdf-canvas" style="max-width:100%;box-shadow:0 4px 24px rgba(0,0,0,.5)"></canvas>
+  </div>
+  <div id="pdf-loading" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-family:var(--mono);color:var(--accent);letter-spacing:2px">ЗАВАНТАЖЕННЯ...</div>
+</div>
+
+<!-- UPLOAD MODAL -->
+<div class="modal-bg" id="upload-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('upload-modal')">✕</button>
+    <div class="modal-title">ЗАВАНТАЖИТИ ДОКУМЕНТ</div>
+    <div class="form-group">
+      <label class="form-label">НАЗВА *</label>
+      <input class="form-input" id="upload-title" placeholder="Назва документу">
+    </div>
+    <div class="form-group">
+      <label class="form-label">КАТЕГОРІЯ *</label>
+      <select class="form-select" id="upload-cat"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">РІВЕНЬ СЕКРЕТНОСТІ</label>
+      <select class="form-select" id="upload-clvl">
+        <option value="1">Рівень I — Відкрито</option>
+        <option value="2">Рівень II</option>
+        <option value="3">Рівень III</option>
+        <option value="4">Рівень IV</option>
+        <option value="5">Рівень V — Максимальний</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ОПИС</label>
+      <textarea class="form-textarea" id="upload-desc" placeholder="Короткий опис..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">PDF ФАЙЛ *</label>
+      <label class="form-file-area" for="upload-file" id="file-label">
+        <span id="file-label-text">📎 Натисніть щоб обрати PDF</span>
+        <input type="file" id="upload-file" accept=".pdf" style="display:none">
+      </label>
+    </div>
+    <div class="progress-bar" id="upload-progress">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="form-error" id="upload-error"></div>
+    <button class="btn btn-accent btn-full" id="btn-upload" onclick="uploadDoc()">ЗАВАНТАЖИТИ</button>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-bg" id="cat-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('cat-modal')">✕</button>
+    <div class="modal-title">НОВА КАТЕГОРІЯ</div>
+    <div class="form-group">
+      <label class="form-label">НАЗВА *</label>
+      <input class="form-input" id="cat-name-input" placeholder="Назва категорії">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ІКОНКА (EMOJI)</label>
+      <input class="form-input" id="cat-icon-input" placeholder="📁" maxlength="4">
+    </div>
+    <div class="form-group">
+      <label class="form-label">РІВЕНЬ СЕКРЕТНОСТІ</label>
+      <select class="form-select" id="cat-clvl-input">
+        <option value="1">Рівень I</option>
+        <option value="2">Рівень II</option>
+        <option value="3">Рівень III</option>
+        <option value="4">Рівень IV</option>
+        <option value="5">Рівень V</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ОПИС</label>
+      <textarea class="form-textarea" id="cat-desc-input" placeholder="Опис категорії..."></textarea>
+    </div>
+    <div class="form-error" id="cat-error"></div>
+    <button class="btn btn-accent btn-full" onclick="createCategory()">СТВОРИТИ</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+  getRedirectResult, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc,
+  deleteDoc, query, where, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// Cloudinary використовується замість Firebase Storage
+const CLOUDINARY_CLOUD = 'dvzpkxoxv';
+const CLOUDINARY_PRESET = 'nikus_photos';
+
+// ─── КОНФІГ ───
+const firebaseConfig = {
+  apiKey: "AIzaSyCapqdj0t6DmxQl3f8ViSRTUYBOD-vn2z4",
+  authDomain: "archive-stronghold-bcua.firebaseapp.com",
+  projectId: "archive-stronghold-bcua",
+  storageBucket: "archive-stronghold-bcua.firebasestorage.app",
+  messagingSenderId: "946932589115",
+  appId: "1:946932589115:web:be590d1347b33d23d8f21e",
+  measurementId: "G-6X4S3V39DF"
+};
+const ADMIN_EMAIL = "usernameposhalko6@gmail.com";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// ─── STATE ───
+const S = {
+  user: null, userDoc: null,
+  clearance: 0, isAdmin: false,
+  page: 'home',
+  selectedCat: null,
+  filterLevel: 0,
+  searchQ: '',
+  categories: [],
+  documents: [],
+  keys: [],
+};
+
+// ─── UTILS ───
+const $ = id => document.getElementById(id);
+const clvlColor = l => ['','#4a9a6a','#4a7aaa','#c8922a','#cc6633','#b83232'][l]||'#555';
+const clvlName  = l => ['ВІДКРИТО','РІВЕНЬ I','РІВЕНЬ II','РІВЕНЬ III','РІВЕНЬ IV','РІВЕНЬ V'][l]||'—';
+
+function toast(msg, dur=2800) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.style.display='none', dur);
+}
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+window.closeModal = closeModal;
+
+// ─── AUTH ───
+async function loginGoogle() {
+  try {
+    await signInWithRedirect(auth, provider);
+  } catch(e) {
+    toast('Помилка входу: ' + e.message);
+  }
+}
+async function doLogout() {
+  await signOut(auth);
+}
+window.loginGoogle = loginGoogle;
+window.logout = doLogout;
+
+// Результат після redirect-входу (мобільний flow)
+getRedirectResult(auth).then(result => {
+  if (result && result.user) {
+    // користувач успішно увійшов через redirect — onAuthStateChanged спрацює автоматично
+    console.log('Redirect login success:', result.user.email);
+  }
+}).catch(e => {
+  if (e && e.code !== 'auth/no-auth-event') {
+    toast('Помилка входу: ' + e.message);
+    console.error(e);
+  }
+});
+
+onAuthStateChanged(auth, async user => {
+  S.user = user;
+  if (user) {
+    S.isAdmin = user.email === ADMIN_EMAIL;
+    const uRef = doc(db,'users',user.uid);
+    const snap = await getDoc(uRef);
+    if (!snap.exists()) {
+      await setDoc(uRef, {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL || '',
+        clearanceLevel: 1,
+        keyActivated: false,
+        createdAt: serverTimestamp()
+      });
+    }
+    const data = (await getDoc(uRef)).data();
+    S.userDoc = data;
+    S.clearance = data.clearanceLevel ?? 1;
+    // Юстикар Стронгхолда отримує максимальний рівень автоматично
+    if (S.isAdmin) S.clearance = 5;
+  } else {
+    S.userDoc = null; S.clearance = 0; S.isAdmin = false;
+  }
+  renderHeader();
+  renderSidebar(); // викликається після S.isAdmin — панель адміна відображається коректно
+  await loadData();
+  renderPage();
+});
+
+// ─── DATA ───
+async function loadData() {
+  try {
+    const [catSnap, docSnap] = await Promise.all([
+      getDocs(collection(db,'categories')),
+      getDocs(collection(db,'documents'))
+    ]);
+    S.categories = catSnap.docs.map(d=>({id:d.id,...d.data()}));
+    S.documents  = docSnap.docs.map(d=>({id:d.id,...d.data()}));
+    $('nav-count-docs').textContent = S.documents.length;
+    $('nav-count-cats').textContent = S.categories.length;
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+// ─── NAVIGATION ───
+function navigateTo(page) {
+  S.page = page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg = $('page-'+page);
+  if (pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active', n.dataset.page === page);
+  });
+  renderPage();
+}
+window.navigateTo = navigateTo;
+
+// ─── HEADER ───
+function renderHeader() {
+  const r = $('header-right');
+  if (S.user) {
+    r.innerHTML = `
+      <span style="font-family:var(--mono);font-size:10px;letter-spacing:1px;
+        padding:4px 10px;border:1px solid ${clvlColor(S.clearance)};
+        color:${clvlColor(S.clearance)}">
+        ${S.isAdmin ? 'ЮСТИКАР' : clvlName(S.clearance)}
+      </span>
+      <button class="btn" onclick="logout()">ВИЙТИ</button>
+    `;
+  } else {
+    r.innerHTML = `<button class="btn btn-accent" onclick="loginGoogle()">УВІЙТИ ЧЕРЕЗ GOOGLE</button>`;
+  }
+}
+
+// ─── SIDEBAR ───
+function renderSidebar() {
+  $('nav-admin-wrap').style.display = S.isAdmin ? '' : 'none';
+  const su = $('sidebar-user');
+  if (S.user) {
+    su.innerHTML = `
+      <div class="user-row">
+        <img class="user-avatar" src="${S.user.photoURL||''}" alt="" onerror="this.style.display='none'">
+        <span class="user-name-small">${S.user.displayName||S.user.email}</span>
+        <button class="btn btn-danger" style="padding:3px 8px;font-size:10px;flex-shrink:0" onclick="logout()">ВИЙТИ</button>
+      </div>`;
+  } else {
+    su.innerHTML = '';
+  }
+}
+
+// ─── RENDER PAGE ───
+function renderPage() {
+  switch(S.page) {
+    case 'home':     renderHome(); break;
+    case 'docs':     renderDocs(); break;
+    case 'cats':     renderCats(); break;
+    case 'activate': renderActivate(); break;
+    case 'admin':    renderAdmin(); break;
+  }
+}
+
+// ─── HOME ───
+function renderHome() {
+  const el = $('home-stats');
+  const clvl = S.clearance;
+  el.innerHTML = `
+    <div style="display:flex;gap:32px;margin-bottom:24px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">ДОКУМЕНТІВ</div>
+        <div style="font-family:var(--head);font-size:40px;color:var(--text-bright)">${S.documents.length}</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">КАТЕГОРІЙ</div>
+        <div style="font-family:var(--head);font-size:40px;color:var(--text-bright)">${S.categories.length}</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:2px;margin-bottom:4px">ВАШ РІВЕНЬ</div>
+        <div style="font-family:var(--head);font-size:40px;color:${clvlColor(clvl)}">${clvl||'—'}</div>
+      </div>
+    </div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);line-height:2;max-width:480px">
+      Архів Стронгхолда — класифікований сховищ документів.<br>
+      ${!S.user
+        ? '<span style="color:var(--accent)">↑ Увійдіть через Google для активації ключа доступу.</span>'
+        : `<span style="color:var(--green)">✓ Допуск активний — ${clvlName(clvl)}</span>`
+      }
+    </div>`;
+}
+
+// ─── DOCS ───
+function renderDocs() {
+  const grid = $('docs-grid');
+  $('btn-reset-cat').style.display = S.selectedCat ? '' : 'none';
+
+  let docs = [...S.documents];
+  if (S.selectedCat) docs = docs.filter(d=>d.categoryId===S.selectedCat);
+  if (S.filterLevel > 0) docs = docs.filter(d=>d.clearanceLevel===S.filterLevel);
+  if (S.searchQ) {
+    const q = S.searchQ.toLowerCase();
+    docs = docs.filter(d=>(d.title||'').toLowerCase().includes(q)||(d.description||'').toLowerCase().includes(q));
+  }
+
+  if (!docs.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📂</div>ДОКУМЕНТИ ВІДСУТНІ</div>`;
+    return;
+  }
+
+  grid.innerHTML = docs.map(d => {
+    const cat = S.categories.find(c=>c.id===d.categoryId);
+    const clvl = d.clearanceLevel || 1;
+    const color = clvlColor(clvl);
+    const canView = clvl===1 || S.clearance>=clvl;
+    const dateStr = d.createdAt?.toDate?.()?.toLocaleDateString('uk-UA') || '—';
+    const delBtn = S.isAdmin ? `<button class="btn btn-danger" style="padding:3px 8px;font-size:10px;margin-top:8px" onclick="event.stopPropagation();removeDoc('${d.id}')">🗑 ВИДАЛИТИ</button>` : '';
+    return `
+      <div class="doc-card ${canView?'':'locked'}" style="--clvl-color:${color}" onclick="${canView?`viewDoc('${d.id}')`:``}">
+        ${!canView ? `<div class="locked-overlay"><span style="font-size:20px">🔒</span>${clvlName(clvl)}</div>` : ''}
+        <div class="doc-card-header">
+          <span class="doc-clvl clvl-${clvl}">${clvlName(clvl)}</span>
+          <span>📄</span>
+        </div>
+        <div class="doc-title">${d.title||'БЕЗ НАЗВИ'}</div>
+        <div class="doc-cat">📁 ${cat?cat.name:'Без категорії'}</div>
+        ${d.description?`<div style="font-size:12px;color:var(--text-dim);line-height:1.5">${d.description.slice(0,80)}${d.description.length>80?'…':''}</div>`:''}
+        <div class="doc-footer">
+          <span>${d.authorName||'АНОН'}</span>
+          <span>${dateStr}</span>
+        </div>
+        ${delBtn}
+      </div>`;
+  }).join('');
+}
+
+// ─── CATS ───
+function renderCats() {
+  const grid = $('cats-grid');
+  if (!S.categories.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📁</div>КАТЕГОРІЇ ВІДСУТНІ</div>`;
+    return;
+  }
+  grid.innerHTML = S.categories.map(cat => {
+    const count = S.documents.filter(d=>d.categoryId===cat.id).length;
+    const clvl = cat.clearanceLevel||1;
+    return `
+      <div class="cat-card ${S.selectedCat===cat.id?'selected':''}" onclick="selectCat('${cat.id}')">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:16px">${cat.icon||'📁'}</span>
+          <span class="cat-name">${cat.name}</span>
+        </div>
+        <div class="cat-info">
+          <span class="clvl-${clvl}">${clvlName(clvl)}</span> · ${count} документів
+        </div>
+        ${cat.description?`<div style="font-size:11px;color:var(--text-dim);margin-top:6px">${cat.description}</div>`:''}
+      </div>`;
+  }).join('');
+}
+
+window.selectCat = function(id) {
+  S.selectedCat = S.selectedCat===id ? null : id;
+  navigateTo('docs');
+};
+
+window.resetCat = function() {
+  S.selectedCat = null;
+  $('btn-reset-cat').style.display='none';
+  renderDocs();
+};
+
+// ─── ACTIVATE ───
+function renderActivate() {
+  const el = $('activate-current');
+  if (S.user && S.clearance > 0) {
+    el.style.display = '';
+    el.textContent = `✓ Поточний рівень: ${clvlName(S.clearance)}. Активуйте новий ключ щоб підвищити рівень.`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+window.activateKey = async function() {
+  if (!S.user) { toast('Спочатку увійдіть'); return; }
+  const keyVal = $('key-input').value.trim().toUpperCase();
+  $('key-error').textContent = '';
+  $('key-success').textContent = '';
+  if (!keyVal) { $('key-error').textContent = 'Введіть ключ'; return; }
+
+  try {
+    const q2 = query(collection(db,'access_keys'), where('key','==',keyVal), where('usedBy','==',null));
+    const snap = await getDocs(q2);
+    if (snap.empty) { $('key-error').textContent = 'Ключ не знайдено або вже використано'; return; }
+    const keyDoc = snap.docs[0];
+    const level = keyDoc.data().level;
+    await updateDoc(doc(db,'access_keys',keyDoc.id), { usedBy: S.user.uid });
+    await updateDoc(doc(db,'users',S.user.uid), { clearanceLevel: level, keyActivated: true });
+    S.clearance = level;
+    S.userDoc = {...S.userDoc, clearanceLevel: level};
+    $('key-success').textContent = `✓ Активовано! ${clvlName(level)}`;
+    $('key-input').value = '';
+    renderHeader();
+    renderActivate();
+  } catch(e) {
+    $('key-error').textContent = 'Помилка: '+e.message;
+  }
+};
+
+// ─── VIEW PDF ───
+let pdfDoc = null, pdfPage = 1;
+
+window.viewDoc = async function(id) {
+  const d = S.documents.find(x=>x.id===id);
+  if (!d) return;
+  $('pdf-title').textContent = d.title||'Документ';
+  $('pdf-viewer').classList.add('open');
+  $('pdf-loading').style.display = 'flex';
+  $('pdf-canvas').style.display = 'none';
+
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    pdfDoc = await pdfjsLib.getDocument(d.pdfUrl).promise;
+    pdfPage = 1;
+    $('pdf-loading').style.display = 'none';
+    $('pdf-canvas').style.display = 'block';
+    await renderPdfPage(pdfPage);
+  } catch(e) {
+    $('pdf-loading').textContent = '❌ Помилка: ' + e.message;
+  }
+};
+
+async function renderPdfPage(num) {
+  const page = await pdfDoc.getPage(num);
+  const vp = page.getViewport({ scale: Math.min(window.innerWidth - 40, 900) / page.getViewport({scale:1}).width });
+  const canvas = $('pdf-canvas');
+  canvas.width = vp.width;
+  canvas.height = vp.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  $('pdf-page-info').textContent = `${num} / ${pdfDoc.numPages}`;
+}
+
+window.pdfPrevPage = async function() {
+  if (!pdfDoc || pdfPage <= 1) return;
+  pdfPage--;
+  await renderPdfPage(pdfPage);
+};
+window.pdfNextPage = async function() {
+  if (!pdfDoc || pdfPage >= pdfDoc.numPages) return;
+  pdfPage++;
+  await renderPdfPage(pdfPage);
+};
+
+window.closePdf = function() {
+  $('pdf-viewer').classList.remove('open');
+  pdfDoc = null; pdfPage = 1;
+};
+
+// ─── UPLOAD ───
+window.openUploadModal = function() {
+  if (!S.user) { toast('Спочатку увійдіть'); return; }
+  if (!S.isAdmin && S.clearance < 4) { toast('Завантаження доступне з РІВНЯ IV'); return; }
+  const sel = $('upload-cat');
+  sel.innerHTML = '<option value="">-- Оберіть категорію --</option>' +
+    S.categories.map(c=>`<option value="${c.id}">${c.icon||'📁'} ${c.name}</option>`).join('');
+  $('upload-title').value='';
+  $('upload-desc').value='';
+  $('upload-error').textContent='';
+  $('btn-upload').disabled=false;
+  $('upload-progress').style.display='none';
+  $('progress-fill').style.width='0%';
+  // скидаємо файл і текст лейблу БЕЗ перестворення input
+  const fileInput = $('upload-file');
+  fileInput.value = '';
+  $('file-label-text').textContent = '📎 Натисніть щоб обрати PDF';
+  openModal('upload-modal');
+};
+
+window.onFileChange = function() {
+  const f = $('upload-file').files[0];
+  if (f) $('file-label-text').textContent = '📄 ' + f.name;
+};
+
+window.uploadDoc = async function() {
+  const errEl = $('upload-error');
+  errEl.textContent = '';
+
+  const title = $('upload-title').value.trim();
+  const catId = $('upload-cat').value;
+  const clvl  = parseInt($('upload-clvl').value);
+  const desc  = $('upload-desc').value.trim();
+  const fileInput = $('upload-file');
+  const file  = fileInput ? fileInput.files[0] : null;
+
+  if (!title)  { errEl.textContent='❌ Введіть назву документу'; return; }
+  if (!catId)  { errEl.textContent='❌ Оберіть категорію'; return; }
+  if (!file)   { errEl.textContent='❌ Оберіть PDF файл'; return; }
+
+  $('upload-progress').style.display='block';
+  $('btn-upload').disabled=true;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('resource_type', 'raw');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/raw/upload`);
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable)
+        $('progress-fill').style.width = (e.loaded / e.total * 100) + '%';
+    };
+
+    xhr.onload = async () => {
+      if (xhr.status === 200) {
+        const res = JSON.parse(xhr.responseText);
+        const url = res.secure_url;
+        try {
+          await addDoc(collection(db,'documents'), {
+            title, categoryId: catId, clearanceLevel: clvl,
+            description: desc, pdfUrl: url,
+            authorId: S.user.uid, authorName: S.user.displayName || S.user.email,
+            fileName: file.name, fileSize: file.size,
+            createdAt: serverTimestamp()
+          });
+          await loadData();
+          closeModal('upload-modal');
+          toast('✓ Документ завантажено!');
+          renderPage();
+        } catch(e2) {
+          errEl.textContent = '❌ Firestore: ' + e2.message;
+        }
+      } else {
+        errEl.textContent = '❌ Cloudinary: ' + xhr.status + ' ' + xhr.responseText;
+      }
+      $('btn-upload').disabled = false;
+      $('upload-progress').style.display = 'none';
+      $('progress-fill').style.width = '0%';
+    };
+
+    xhr.onerror = () => {
+      errEl.textContent = '❌ Помилка мережі при завантаженні';
+      $('btn-upload').disabled = false;
+      $('upload-progress').style.display = 'none';
+    };
+
+    xhr.send(formData);
+  } catch(e) {
+    errEl.textContent = '❌ ' + e.message;
+    $('btn-upload').disabled = false;
+    $('upload-progress').style.display = 'none';
+  }
+};
+
+// ─── DELETE DOC ───
+window.removeDoc = async function(id) {
+  if (!S.isAdmin) { toast('Тільки Юстикар може видаляти документи'); return; }
+  if (!confirm('Видалити документ? Це незворотно.')) return;
+  try {
+    await deleteDoc(doc(db,'documents',id));
+    await loadData();
+    toast('✓ Документ видалено');
+    renderPage();
+  } catch(e) {
+    toast('❌ ' + e.message);
+  }
+};
+
+// ─── CATEGORY ───
+window.openCatModal = function() {
+  if (!S.user) { toast('Спочатку увійдіть'); return; }
+  if (!S.isAdmin && S.clearance < 4) { toast('Створення категорій доступне з РІВНЯ IV або для Юстикара'); return; }
+  $('cat-name-input').value=''; $('cat-icon-input').value=''; $('cat-desc-input').value='';
+  $('cat-error').textContent='';
+  openModal('cat-modal');
+};
+
+window.createCategory = async function() {
+  const name = $('cat-name-input').value.trim();
+  const clvl = parseInt($('cat-clvl-input').value);
+  const desc = $('cat-desc-input').value.trim();
+  const icon = $('cat-icon-input').value.trim()||'📁';
+  if (!name) { $('cat-error').textContent='Введіть назву'; return; }
+  try {
+    await addDoc(collection(db,'categories'),{name,clearanceLevel:clvl,description:desc,icon,createdBy:S.user.uid,createdAt:serverTimestamp()});
+    await loadData();
+    closeModal('cat-modal');
+    toast('✓ Категорію створено!');
+    renderPage();
+  } catch(e) {
+    $('cat-error').textContent='Помилка: '+e.message;
+  }
+};
+
+// ─── ADMIN ───
+async function renderAdmin() {
+  if (!S.isAdmin) {
+    $('page-admin').innerHTML='<div class="empty-state"><div class="empty-icon">🚫</div>ДОСТУП ЗАБОРОНЕНО</div>';
+    return;
+  }
+  // load keys
+  const snap = await getDocs(collection(db,'access_keys'));
+  S.keys = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderKeyList();
+  // load users
+  const uSnap = await getDocs(collection(db,'users'));
+  const users = uSnap.docs.map(d=>({id:d.id,...d.data()}));
+  const ul = $('users-list');
+  if (!users.length) { ul.textContent='Немає користувачів'; return; }
+  ul.innerHTML = users.map(u=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);margin-bottom:4px;flex-wrap:wrap">
+      <span style="flex:1;color:var(--text);font-family:var(--mono);font-size:11px">${u.displayName||u.email||u.id}</span>
+      <select onchange="setUserLevel('${u.id}',this.value)" style="background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;padding:3px 6px">
+        ${[1,2,3,4,5].map(l=>`<option value="${l}" ${(u.clearanceLevel||1)==l?'selected':''}>${clvlName(l)}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+
+window.setUserLevel = async function(uid, level) {
+  if (!S.isAdmin) return;
+  try {
+    await updateDoc(doc(db,'users',uid), { clearanceLevel: parseInt(level) });
+    toast('✓ Рівень оновлено');
+  } catch(e) {
+    toast('Помилка: '+e.message);
+  }
+};
+
+function renderKeyList() {
+  const list = $('key-list');
+  if (!list) return;
+  if (!S.keys.length) { list.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text-dim)">Ключів немає</div>'; return; }
+  list.innerHTML = S.keys.map(k=>`
+    <div class="key-item">
+      <span class="key-val">${k.key}</span>
+      <span class="clvl-${k.level}">РВ.${k.level}</span>
+      <span class="key-used">${k.usedBy?'✓ ВИКОРИСТАНО':'○ ВІЛЬНИЙ'}</span>
+      ${!k.usedBy?`<button class="btn btn-danger" style="padding:3px 8px;font-size:10px" onclick="deleteKey('${k.id}')">×</button>`:''}
+    </div>`).join('');
+}
+
+window.generateKey = async function() {
+  if (!S.isAdmin) return;
+  const level = parseInt($('key-level-select').value);
+  const key = 'SH-'+Math.random().toString(36).slice(2,8).toUpperCase()+'-'+level;
+  await addDoc(collection(db,'access_keys'),{key,level,usedBy:null,createdAt:serverTimestamp()});
+  toast('Ключ: '+key, 5000);
+  const snap = await getDocs(collection(db,'access_keys'));
+  S.keys = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderKeyList();
+};
+
+window.deleteKey = async function(id) {
+  if (!S.isAdmin) return;
+  await deleteDoc(doc(db,'access_keys',id));
+  S.keys = S.keys.filter(k=>k.id!==id);
+  renderKeyList();
+};
+
+// ─── SEARCH / FILTER ───
+window.onSearch = function(e) {
+  S.searchQ = e.target.value;
+  renderDocs();
+};
+
+window.filterLevel = function(l) {
+  S.filterLevel = S.filterLevel===l ? 0 : l;
+  document.querySelectorAll('.clevel-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.dataset.level)===S.filterLevel);
+  });
+  if (S.page==='docs') renderDocs();
+};
+
+// ─── FILE INPUT LISTENER ───
+document.getElementById('upload-file').addEventListener('change', function() {
+  const f = this.files[0];
+  if (f) document.getElementById('file-label-text').textContent = '📄 ' + f.name;
+});
+
+// ─── CLOCK ───
+setInterval(()=>{
+  const el = $('sys-time');
+  if(el) el.textContent = new Date().toLocaleString('uk-UA')+' · СИСТЕМА АКТИВНА';
+},1000);
+$('sys-time').textContent = new Date().toLocaleString('uk-UA')+' · СИСТЕМА АКТИВНА';
+
+</script>
+</body>
+</html>
